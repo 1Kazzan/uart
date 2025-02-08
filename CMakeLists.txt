@@ -35,13 +35,13 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(uart uart.c )
+add_executable(uart uart.c inc/ssd1306.c )
 
 pico_set_program_name(uart "uart")
 pico_set_program_version(uart "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(uart 0)
+pico_enable_stdio_uart(uart 1)
 pico_enable_stdio_usb(uart 1)
 
 pico_generate_pio_header(uart ${CMAKE_CURRENT_LIST_DIR}/uart.pio)
@@ -53,7 +53,8 @@ target_link_libraries(uart PRIVATE
         pico_stdlib
         hardware_pio
 	    hardware_adc
-        pico_bootrom)
+        pico_bootrom
+        )
 
 # Add the standard include files to the build
 target_include_directories(uart PRIVATE
@@ -62,7 +63,7 @@ target_include_directories(uart PRIVATE
 
 # Add any user requested libraries
 target_link_libraries(uart
-        
+hardware_i2c
         )
 
 pico_add_extra_outputs(uart)
