@@ -50,7 +50,7 @@ void gpio_irq_handler(uint gpio, uint32_t events) {
         if (!gpio_get(buttonA)  ) {
             estado_led_green = !estado_led_green; // Alterna o estado
             gpio_put(led_green, estado_led_green); // Atualiza o led
-            printf("O led verde mudou de estado.\n");     
+            printf("O led verde mudou de estado.\n");      
         }
     }
     // Verifica o debounce para o botão B
@@ -60,7 +60,7 @@ void gpio_irq_handler(uint gpio, uint32_t events) {
         if (!gpio_get(buttonB)) {
             estado_led_blue = !estado_led_blue; // Alterna o estado
             gpio_put(led_blue, estado_led_blue); // Atualiza o led
-            printf("O led azul mudou de estado.\n");  
+            printf("O led azul mudou de estado.\n");
         }
     }
 }
@@ -187,6 +187,22 @@ int main(){
  inicializar_clock();
  configurar_pio(pio, &offset, &sm);
 
+// I2C Initialisation. Using it at 400Khz.
+i2c_init(I2C_PORT, 400 * 1000);
+
+gpio_set_function(I2C_SDA, GPIO_FUNC_I2C); // Set the GPIO pin function to I2C
+gpio_set_function(I2C_SCL, GPIO_FUNC_I2C); // Set the GPIO pin function to I2C
+gpio_pull_up(I2C_SDA); // Pull up the data line
+gpio_pull_up(I2C_SCL); // Pull up the clock line
+ssd1306_t ssd; // Inicializa a estrutura do display
+ssd1306_init(&ssd, WIDTH, HEIGHT, false, endereco, I2C_PORT); // Inicializa o display
+ssd1306_config(&ssd); // Configura o display
+ssd1306_send_data(&ssd); // Envia os dados para o display
+ 
+// Limpa o display. O display inicia com todos os pixels apagados.
+ssd1306_fill(&ssd, false);
+ssd1306_send_data(&ssd);
+
 //inicar led verde e azul
 gpio_init(led_green);
 gpio_set_dir(led_green, GPIO_OUT);
@@ -208,12 +224,30 @@ gpio_set_irq_enabled_with_callback(buttonA, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_
 gpio_set_irq_enabled_with_callback(buttonB, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
 
 while(true){
-    
+    if(gpio_get(buttonA) == 0){
+        // Atualiza o display SSD1306
+        ssd1306_fill(&ssd, false); // Limpa o display
+        ssd1306_draw_string(&ssd, estado_led_green ? "led verde: ON" : "led verde:OFF", 18, 24);
+        ssd1306_send_data(&ssd); // Atualiza o displa
+    }
+    if(gpio_get(buttonB) == 0){
+        // Atualiza o display SSD1306
+        ssd1306_fill(&ssd, false); // Limpa o display
+        ssd1306_draw_string(&ssd, estado_led_blue ? "led azul: ON" : "led azul:OFF", 18, 24);
+        ssd1306_send_data(&ssd); // Atualiza o displa
+    }
+
     if (stdio_usb_connected()){
         char c;
         if (scanf("%c", &c) == 1){
          // Lê caractere da entrada padrão
             printf("Recebido: '%c'\n", c);
+
+        // Exibe o caractere no display OLED
+        ssd1306_fill(&ssd, false);  // Limpa o display
+        ssd1306_draw_char(&ssd, c, 56, 24);  // Mostra o caractere recebido
+        ssd1306_send_data(&ssd);  // Atualiza o display
+
      switch (c) {
         case '0':
             numero_atual = 0;
