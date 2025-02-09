@@ -26,7 +26,7 @@ const uint led_blue = 12; //gpio do led rgb azul
 const uint buttonA = 5; // gpio do botão 1
 const uint buttonB = 6; // gpio do botão 2
 
-int numero_atual = 0;
+int numero_atual = 0;// variável útil para fazer a exibição dos números
 
 // variáveis para executar funções de interrupção e debouncing
 volatile uint32_t last_time_A = 0;
@@ -44,8 +44,7 @@ void gpio_irq_handler(uint gpio, uint32_t events) {
     uint32_t current_time = to_us_since_boot(get_absolute_time());
     // Verifica o debounce para o botão A
     if (gpio == buttonA && current_time - last_time_A > 200000) { // 200 ms de debounce
-        last_time_A = current_time; // muda o último estado para atual
-        
+        last_time_A = current_time; // muda o último estado para atual    
         // Ação para o botão A
         if (!gpio_get(buttonA)  ) {
             estado_led_green = !estado_led_green; // Alterna o estado
@@ -64,7 +63,6 @@ void gpio_irq_handler(uint gpio, uint32_t events) {
         }
     }
 }
-
 // representação dos números de 0-9
 double numeros[10][25] = {
       {
@@ -168,7 +166,7 @@ void configurar_pio(PIO pio, uint *offset, uint *sm) {
     uint32_t valor_led;
     double* matriz_atual = numeros[numero]; // Ponteiro para a matriz do número atual
 
-// Exibe o número no terminal (opcional para depuração)
+// Exibe o número no terminal 
      printf("Exibindo o número: %d\n", numero);
 
     for (int i = 0; i < 25; i++) {
@@ -187,13 +185,13 @@ int main(){
  inicializar_clock();
  configurar_pio(pio, &offset, &sm);
 
-// I2C Initialisation. Using it at 400Khz.
+// Inicia o I2C com 400Khz.
 i2c_init(I2C_PORT, 400 * 1000);
-
-gpio_set_function(I2C_SDA, GPIO_FUNC_I2C); // Set the GPIO pin function to I2C
-gpio_set_function(I2C_SCL, GPIO_FUNC_I2C); // Set the GPIO pin function to I2C
-gpio_pull_up(I2C_SDA); // Pull up the data line
-gpio_pull_up(I2C_SCL); // Pull up the clock line
+// Defini os pinos GPIO I2C
+gpio_set_function(I2C_SDA, GPIO_FUNC_I2C); 
+gpio_set_function(I2C_SCL, GPIO_FUNC_I2C); 
+gpio_pull_up(I2C_SDA); 
+gpio_pull_up(I2C_SCL); 
 ssd1306_t ssd; // Inicializa a estrutura do display
 ssd1306_init(&ssd, WIDTH, HEIGHT, false, endereco, I2C_PORT); // Inicializa o display
 ssd1306_config(&ssd); // Configura o display
@@ -227,13 +225,13 @@ while(true){
     if(gpio_get(buttonA) == 0){
         // Atualiza o display SSD1306
         ssd1306_fill(&ssd, false); // Limpa o display
-        ssd1306_draw_string(&ssd, estado_led_green ? "led verde: ON" : "led verde:OFF", 18, 24);
+        ssd1306_draw_string(&ssd, estado_led_green ? "led verde: ON" : "led verde:OFF", 18, 24); // exibe mensagem informativa no display
         ssd1306_send_data(&ssd); // Atualiza o displa
     }
     if(gpio_get(buttonB) == 0){
         // Atualiza o display SSD1306
         ssd1306_fill(&ssd, false); // Limpa o display
-        ssd1306_draw_string(&ssd, estado_led_blue ? "led azul: ON" : "led azul:OFF", 18, 24);
+        ssd1306_draw_string(&ssd, estado_led_blue ? "led azul: ON" : "led azul:OFF", 18, 24); // exibe mensagem informativa no display
         ssd1306_send_data(&ssd); // Atualiza o displa
     }
 
@@ -243,7 +241,7 @@ while(true){
          // Lê caractere da entrada padrão
             printf("Recebido: '%c'\n", c);
 
-        // Exibe o caractere no display OLED
+        // Exibe o caractere no display 
         ssd1306_fill(&ssd, false);  // Limpa o display
         ssd1306_draw_char(&ssd, c, 56, 24);  // Mostra o caractere recebido
         ssd1306_send_data(&ssd);  // Atualiza o display
