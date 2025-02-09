@@ -54,6 +54,7 @@ target_link_libraries(uart PRIVATE
         hardware_pio
 	    hardware_adc
         pico_bootrom
+        hardware_i2c
         )
 
 # Add the standard include files to the build
@@ -63,7 +64,6 @@ target_include_directories(uart PRIVATE
 
 # Add any user requested libraries
 target_link_libraries(uart
-hardware_i2c
         )
 
 pico_add_extra_outputs(uart)
